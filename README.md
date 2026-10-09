@@ -140,6 +140,117 @@ curl -i -F "file=@screenshot.png" http://localhost:8080/api/images
 
 **CORS:** the API accepts requests from the React dev server at `http://localhost:5173`. You can change this with `app.cors.allowed-origins` in `application.properties`.
 
+### Test the API with curl
+
+Start the backend, then run these from any terminal. `-i` prints the status line and headers, so you can check each code.
+
+**Tasks: happy path**
+
+```bash
+# List all tasks -> 200 OK (starts as [])
+curl -i http://localhost:8080/api/tasks
+
+# Create a task -> 201 Created, with a Location header
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Prepare report", "description": "Draft weekly report", "status": "TODO"}'
+
+# Create without a status -> 201 Created, status defaults to TODO
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Review pull requests"}'
+
+# Create with a rich-text description -> 201 Created
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Release notes", "description": "<h2>Highlights</h2><p><strong>Bold</strong> and <em>italic</em></p><ul><li><p>First</p></li></ul>"}'
+
+# Get one task -> 200 OK
+curl -i http://localhost:8080/api/tasks/1
+
+# Update a task -> 200 OK
+curl -i -X PUT http://localhost:8080/api/tasks/1 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Prepare final report", "description": "Numbers are final", "status": "DONE"}'
+
+# Update without a status -> 200 OK, keeps the current status (DONE)
+curl -i -X PUT http://localhost:8080/api/tasks/1 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Prepare final report v2"}'
+
+# Delete a task -> 204 No Content
+curl -i -X DELETE http://localhost:8080/api/tasks/2
+```
+
+**Tasks: errors**
+
+All of these return the JSON error body with `status` and `message`.
+
+```bash
+# Missing task -> 404
+curl -i http://localhost:8080/api/tasks/999
+curl -i -X PUT http://localhost:8080/api/tasks/999 \
+  -H "Content-Type: application/json" -d '{"title": "Valid title"}'
+curl -i -X DELETE http://localhost:8080/api/tasks/999
+
+# Title missing -> 400 "title is required"
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" -d '{"description": "No title"}'
+
+# Title too short -> 400 "title must be between 3 and 100 characters"
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" -d '{"title": "ab"}'
+
+# Invalid status -> 400
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" -d '{"title": "Valid title", "status": "FINISHED"}'
+
+# Malformed JSON -> 400
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" -d '{not json'
+
+# Non-numeric id -> 400
+curl -i http://localhost:8080/api/tasks/abc
+
+# Unsupported method -> 405
+curl -i -X PATCH http://localhost:8080/api/tasks/1
+
+# Unsafe HTML is cleaned -> 201, description is "<p>Safe text</p>"
+curl -i -X POST http://localhost:8080/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Sanitizer check", "description": "<p onclick=\"alert(1)\">Safe text<script>alert(1)</script></p>"}'
+```
+
+**Images**
+
+```bash
+# Create a 1x1 test PNG
+echo iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg== | base64 -d > pixel.png
+
+# Upload it -> 201 Created, {"id": 1, "url": "http://localhost:8080/api/images/1"}
+curl -i -F "file=@pixel.png" http://localhost:8080/api/images
+
+# Fetch it -> 200 OK, Content-Type: image/png
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:8080/api/images/1
+
+# Not a real image -> 400 "image must be a PNG, JPEG, GIF or WebP file"
+echo "not an image" > fake.png
+curl -i -F "file=@fake.png" http://localhost:8080/api/images
+
+# Over 2 MB -> 413
+head -c 3000000 /dev/zero > big.png
+curl -i -F "file=@big.png" http://localhost:8080/api/images
+
+# Missing image -> 404
+curl -i http://localhost:8080/api/images/999
+
+# CORS preflight from the React dev server -> Access-Control-Allow-Origin: http://localhost:5173
+curl -i -X OPTIONS http://localhost:8080/api/tasks \
+  -H "Origin: http://localhost:5173" -H "Access-Control-Request-Method: POST"
+```
+
+The ids above assume a fresh start. Restart the backend to reset the data.
+
 ### Design
 
 The code follows a Controller → Service → Repository structure:
