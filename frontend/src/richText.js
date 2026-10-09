@@ -4,7 +4,8 @@ export const MAX_DESCRIPTION_LENGTH = 500;
 
 // Same tags the backend allows; the backend sanitizes on save, this guards rendering.
 const PURIFY_CONFIG = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'ul', 'ol', 'li', 'span', 'img'],
+  ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'blockquote', 'hr', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
+    'ul', 'ol', 'li', 'span', 'img'],
   ALLOWED_ATTR: ['style', 'src', 'alt'],
 };
 
@@ -19,6 +20,6 @@ export function sanitizeHtml(html) {
 export function plainTextLength(html) {
   if (!html) return 0;
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  doc.body.querySelectorAll('p, li, pre, br').forEach((el) => el.after(' '));
+  doc.body.querySelectorAll('p, h1, h2, h3, li, pre, br').forEach((el) => el.after(' '));
   return doc.body.textContent.replace(/\s+/g, ' ').trim().length;
 }

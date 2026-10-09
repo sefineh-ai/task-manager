@@ -10,6 +10,13 @@ import { Markdown } from 'tiptap-markdown';
 import { FontSize } from './fontSize.js';
 import { imageApi } from './api.js';
 
+const BLOCK_STYLES = [
+  { label: 'Text', value: 'paragraph' },
+  { label: 'Heading 1', value: '1' },
+  { label: 'Heading 2', value: '2' },
+  { label: 'Heading 3', value: '3' },
+];
+
 const FONT_FAMILIES = [
   { label: 'Font', value: '' },
   { label: 'Serif', value: 'Georgia, serif' },
@@ -53,14 +60,15 @@ export default function RichTextEditor({ value, onChange, labelId, placeholder, 
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: false, blockquote: false, horizontalRule: false }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,
       TextStyle,
       FontFamily,
       FontSize,
       Image.configure({ inline: false, allowBase64: false }),
       Placeholder.configure({ placeholder }),
-      // Pasted Markdown becomes formatting: **bold**, *italic*, ~~strike~~, `code`, lists, code blocks.
+      // Pasted Markdown becomes formatting: # headings, **bold**, *italic*, ~~strike~~, `code`,
+      // lists, > quotes, --- dividers and code blocks.
       Markdown.configure({ html: true, transformPastedText: true, transformCopiedText: false }),
     ],
     content: value,
@@ -126,6 +134,8 @@ export default function RichTextEditor({ value, onChange, labelId, placeholder, 
 
   if (!editor) return null;
 
+  const activeHeading = [1, 2, 3].find((level) => editor.isActive('heading', { level }));
+  const blockStyle = activeHeading ? String(activeHeading) : 'paragraph';
   const fontFamily = editor.getAttributes('textStyle').fontFamily ?? '';
   const fontSize = editor.getAttributes('textStyle').fontSize ?? '';
   const locked = disabled || uploading;
@@ -133,6 +143,25 @@ export default function RichTextEditor({ value, onChange, labelId, placeholder, 
   return (
     <div className={`rich-editor${invalid ? ' is-invalid' : ''}`}>
       <div className="rich-toolbar" role="toolbar" aria-label="Text formatting">
+        <select
+          className="tb-select"
+          aria-label="Text style"
+          value={blockStyle}
+          disabled={locked}
+          onChange={(e) => {
+            const chain = editor.chain().focus();
+            (e.target.value === 'paragraph'
+              ? chain.setParagraph()
+              : chain.setHeading({ level: Number(e.target.value) })
+            ).run();
+          }}
+        >
+          {BLOCK_STYLES.map((b) => (
+            <option key={b.value} value={b.value}>
+              {b.label}
+            </option>
+          ))}
+        </select>
         <select
           className="tb-select"
           aria-label="Font"

@@ -36,6 +36,15 @@
   box-sizing: border-box;
 }
 
+/* No visible scrollbars anywhere; areas still scroll with wheel, touch and keyboard. */
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -254,7 +263,7 @@ h2 {
 }
 
 .rich-toolbar .tb-select {
-  width: 5.75rem;
+  width: 5.4rem;
   max-width: 100%;
   margin: 0;
   padding: 0.3rem 0.4rem;
@@ -276,9 +285,9 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.85rem;
+  min-width: 1.75rem;
   height: 1.85rem;
-  padding: 0 0.35rem;
+  padding: 0 0.3rem;
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1;
@@ -335,7 +344,7 @@ h2 {
   background: var(--line);
 }
 
-/* Grows with the content up to a cap, then scrolls without a visible scrollbar. */
+/* Grows with the content up to a cap, then scrolls. */
 .rich-editor-content {
   min-height: 92px;
   max-height: 220px;
@@ -344,12 +353,7 @@ h2 {
   font-size: 0.97rem;
   color: var(--ink);
   outline: none;
-  scrollbar-width: none;
   overflow-wrap: anywhere;
-}
-
-.rich-editor-content::-webkit-scrollbar {
-  display: none;
 }
 
 .rich-editor-content p.is-editor-empty:first-child::before {
@@ -411,6 +415,50 @@ h2 {
 .rich-text ol {
   margin: 0;
   padding-left: 1.35rem;
+}
+
+.rich-editor-content h1,
+.rich-editor-content h2,
+.rich-editor-content h3,
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--ink);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.rich-editor-content h1,
+.rich-text h1 {
+  font-size: 1.45rem;
+}
+
+.rich-editor-content h2,
+.rich-text h2 {
+  font-size: 1.25rem;
+}
+
+.rich-editor-content h3,
+.rich-text h3 {
+  font-size: 1.08rem;
+}
+
+.rich-editor-content blockquote,
+.rich-text blockquote {
+  margin: 0;
+  padding: 0.15rem 0 0.15rem 0.85rem;
+  border-left: 3px solid var(--green);
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.rich-editor-content hr,
+.rich-text hr {
+  margin: 0.6rem 0;
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 
 .rich-editor-content code,
@@ -924,7 +972,8 @@ button.danger-solid:focus-visible {
 
   .rich-toolbar .tb-select {
     width: auto;
-    flex: 1 1 45%;
+    min-width: 0;
+    flex: 1 1 30%;
     font-size: 16px;
   }
 

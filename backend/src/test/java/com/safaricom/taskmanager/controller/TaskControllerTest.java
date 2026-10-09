@@ -126,6 +126,16 @@ class TaskControllerTest {
     }
 
     @Test
+    void createKeepsHeadingsQuotesAndDividers() throws Exception {
+        String html = "<h1>Plan</h1><h2>Goals</h2><h3>Details</h3>"
+                + "<blockquote><p>Ship on Friday</p></blockquote><hr><p>Done</p>";
+
+        postTask(json("Structured task", html, null))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.description").value(html));
+    }
+
+    @Test
     void createRemovesUnsafeMarkup() throws Exception {
         String html = "<p onclick=\"alert(1)\">Hello<script>alert(1)</script>"
                 + "<a href=\"javascript:alert(1)\">link</a>"

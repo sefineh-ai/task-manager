@@ -20,7 +20,8 @@ import java.util.regex.Pattern;
 public final class HtmlSanitizer {
 
     private static final Safelist SAFELIST = Safelist.none()
-            .addTags("p", "br", "strong", "em", "u", "s", "code", "pre", "ul", "ol", "li", "span", "img")
+            .addTags("p", "h1", "h2", "h3", "blockquote", "hr", "br", "strong", "em", "u", "s", "code", "pre",
+                    "ul", "ol", "li", "span", "img")
             .addAttributes("span", "style")
             .addAttributes("img", "src", "alt")
             .addProtocols("img", "src", "http", "https");
