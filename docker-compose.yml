@@ -1,0 +1,8 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: task-manager-backend:latest
+    ports:
+      - "8080:8080"
